@@ -1,0 +1,659 @@
+<title>Momentum Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F5F2;
+  --surface:#FFFFFF;
+  --surface-2:#E8EEE9;
+  --text:#11201A;
+  --text-muted:#55655C;
+  --border:#D7E0D9;
+  --accent:#D98E2B;
+  --accent-ink:#5C3B0E;
+  --series-a:#1B6E6E;
+  --series-a-soft:rgba(27,110,110,0.16);
+  --series-b:#B5503F;
+  --series-b-soft:rgba(181,80,63,0.16);
+  --good:#2E7D4F;
+  --shadow:0 1px 2px rgba(17,32,26,0.06), 0 8px 24px rgba(17,32,26,0.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1512; --surface:#141F1A; --surface-2:#1B2821;
+    --text:#E9F1EC; --text-muted:#9FB2A8; --border:#263730;
+    --accent:#F0B24A; --accent-ink:#2A1C06;
+    --series-a:#4FBFBF; --series-a-soft:rgba(79,191,191,0.16);
+    --series-b:#E2887A; --series-b-soft:rgba(226,136,122,0.16);
+    --good:#54C98A;
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1512; --surface:#141F1A; --surface-2:#1B2821;
+  --text:#E9F1EC; --text-muted:#9FB2A8; --border:#263730;
+  --accent:#F0B24A; --accent-ink:#2A1C06;
+  --series-a:#4FBFBF; --series-a-soft:rgba(79,191,191,0.16);
+  --series-b:#E2887A; --series-b-soft:rgba(226,136,122,0.16);
+  --good:#54C98A;
+  --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.45);
+}
+*{box-sizing:border-box;}
+body{background:var(--bg); color:var(--text); font-family:'IBM Plex Sans',Arial,sans-serif;}
+.app{max-width:1120px; margin:0 auto; padding-inline:20px; padding-block:28px; display:flex; flex-direction:column; gap:20px;}
+h1,h2{font-family:'Oswald',Arial,sans-serif; letter-spacing:0.01em; margin:0;}
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+.brand{display:flex; align-items:baseline; gap:10px;}
+.brand h1{font-size:1.7rem; font-weight:600; text-wrap:balance;}
+.brand .tag{color:var(--text-muted); font-size:0.85rem;}
+.mode-pill{font-family:'IBM Plex Mono',monospace; font-size:0.78rem; padding:6px 12px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted);}
+.mode-pill.live{color:var(--accent-ink); background:var(--accent); border-color:var(--accent); font-weight:600;}
+
+.layout{display:grid; grid-template-columns:260px 1fr; gap:20px; align-items:start;}
+@media (max-width:760px){ .layout{grid-template-columns:1fr;} }
+
+.panel{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:10px;}
+.panel h2{font-size:0.95rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted);}
+.control-rail{display:flex; flex-direction:column; gap:16px;}
+.hint{font-size:0.8rem; color:var(--text-muted); margin:0; line-height:1.4;}
+
+.dropzone{border:1.5px dashed var(--border); border-radius:10px; padding:18px 12px; display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; cursor:pointer; transition:border-color .15s, background .15s;}
+.dropzone:hover,.dropzone:focus-visible{border-color:var(--series-a); background:var(--series-a-soft);}
+.dz-title{font-weight:600; font-size:0.9rem;}
+.dz-sub{font-size:0.78rem; color:var(--text-muted);}
+
+.error-box{background:var(--series-b-soft); border:1px solid var(--series-b); color:var(--text); border-radius:10px; padding:10px 12px; font-size:0.82rem; line-height:1.45;}
+.error-box strong{color:var(--series-b);}
+
+.ghost-btn{appearance:none; border:1px solid var(--border); background:var(--surface-2); color:var(--text); border-radius:8px; padding:8px 12px; font-size:0.82rem; font-family:inherit; cursor:pointer;}
+.ghost-btn:hover{border-color:var(--series-a);}
+
+.slider-row{display:grid; grid-template-columns:1fr auto; grid-template-areas:"label output" "slider slider"; gap:2px 8px; align-items:center;}
+.slider-row label{grid-area:label; font-size:0.82rem;}
+.slider-row output{grid-area:output; font-family:'IBM Plex Mono',monospace; font-size:0.8rem; color:var(--text-muted);}
+.slider-row input[type="range"]{grid-area:slider; width:100%; accent-color:var(--series-a);}
+.weights-panel[data-disabled="true"] .slider-row{opacity:0.45; pointer-events:none;}
+
+.chart-column{display:flex; flex-direction:column; gap:14px; min-width:0;}
+.legend-row{display:flex; gap:18px; flex-wrap:wrap; font-size:0.85rem;}
+.legend-item{display:flex; align-items:center; gap:6px;}
+.swatch{width:12px; height:12px; border-radius:3px; display:inline-block;}
+
+.chart-card{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px; box-shadow:var(--shadow);}
+#chart{width:100%; height:auto; display:block;}
+#chart text{fill:var(--text-muted); font-family:'IBM Plex Mono',monospace;}
+#chart .axis-line{stroke:var(--border);}
+#chart .turning-line{stroke:var(--accent);}
+#chart .goal-label{fill:var(--text); font-family:'IBM Plex Sans',Arial,sans-serif; font-weight:500;}
+
+.stat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+@media (max-width:620px){ .stat-grid{grid-template-columns:1fr;} }
+.stat-tile{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px;}
+.stat-label{font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted);}
+.stat-value{font-family:'IBM Plex Mono',monospace; font-size:1.3rem; font-weight:600; font-variant-numeric:tabular-nums;}
+.control-bar{height:10px; border-radius:999px; background:var(--surface-2); overflow:hidden; display:flex;}
+.control-bar .seg-a{background:var(--series-a);}
+.control-bar .seg-b{background:var(--series-b);}
+
+.turning-sentence{font-size:0.95rem; line-height:1.5; margin:0; padding:14px 16px; background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:10px; box-shadow:var(--shadow);}
+.turning-sentence b{color:var(--accent-ink); background:var(--accent); padding:1px 6px; border-radius:5px;}
+.notes{font-size:0.78rem; color:var(--text-muted); font-style:italic; margin:0;}
+
+.foot{color:var(--text-muted); font-size:0.78rem; text-align:center; padding-top:4px;}
+.foot a{color:inherit;}
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <h1>Momentum Lab</h1>
+      <span class="tag">match momentum &amp; turning points, computed in your browser</span>
+    </div>
+    <div class="mode-pill" id="modePill">Illustrative example</div>
+  </header>
+
+  <main class="layout">
+    <aside class="control-rail">
+      <section class="panel">
+        <h2>Upload a match</h2>
+        <p class="hint">StatsBomb-format event CSV, one match (any column order; common alternate column names are recognised).</p>
+        <label class="dropzone" for="fileInput" tabindex="0">
+          <input type="file" id="fileInput" accept=".csv" hidden>
+          <span class="dz-title">Drop CSV or click to browse</span>
+          <span class="dz-sub">Single match, event-level data</span>
+        </label>
+        <div class="error-box" id="fileError" hidden></div>
+        <button class="ghost-btn" id="resetBtn" hidden type="button">Back to example</button>
+      </section>
+
+      <section class="panel weights-panel" id="weightsPanel" data-disabled="true">
+        <h2>Momentum weights</h2>
+        <div class="slider-row">
+          <label for="wXg">Shot quality (xG)</label>
+          <output id="wXgOut">3.0</output>
+          <input type="range" id="wXg" min="0" max="5" step="0.1" value="3">
+        </div>
+        <div class="slider-row">
+          <label for="wPress">Pressing</label>
+          <output id="wPressOut">0.10</output>
+          <input type="range" id="wPress" min="0" max="1" step="0.01" value="0.1">
+        </div>
+        <div class="slider-row">
+          <label for="wDrib">Dribbling</label>
+          <output id="wDribOut">0.30</output>
+          <input type="range" id="wDrib" min="0" max="1" step="0.05" value="0.3">
+        </div>
+        <p class="hint" id="weightsHint">Upload your own match to tune these live.</p>
+      </section>
+    </aside>
+
+    <section class="chart-column">
+      <div class="legend-row" id="legendRow"></div>
+      <div class="chart-card">
+        <svg id="chart" viewBox="0 0 960 420" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Match momentum chart"></svg>
+      </div>
+      <div class="stat-grid" id="statGrid"></div>
+      <p class="turning-sentence" id="turningSentence"></p>
+      <p class="notes" id="notesLine" hidden></p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Sports Analytics Hackathon · IUS Sarajevo · data via <a href="https://github.com/statsbomb/open-data" target="_blank" rel="noopener">StatsBomb Open Data</a></p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BIN_SIZE = 5;
+
+  // ---------- CSV parsing ----------
+  function parseCSV(text){
+    var rows = [], row = [], field = '', inQuotes = false, i = 0, n = text.length;
+    while (i < n){
+      var c = text[i];
+      if (inQuotes){
+        if (c === '"'){
+          if (text[i+1] === '"'){ field += '"'; i += 2; continue; }
+          inQuotes = false; i++; continue;
+        } else { field += c; i++; continue; }
+      } else {
+        if (c === '"'){ inQuotes = true; i++; continue; }
+        if (c === ','){ row.push(field); field=''; i++; continue; }
+        if (c === '\r'){ i++; continue; }
+        if (c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; i++; continue; }
+        field += c; i++; continue;
+      }
+    }
+    if (field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
+    if (rows.length === 0) return { headers: [], records: [] };
+    var headers = rows[0];
+    var records = [];
+    for (var r = 1; r < rows.length; r++){
+      var raw = rows[r];
+      if (raw.length === 1 && raw[0] === '') continue;
+      var obj = {};
+      for (var h = 0; h < headers.length; h++){ obj[headers[h]] = raw[h] !== undefined ? raw[h] : ''; }
+      records.push(obj);
+    }
+    return { headers: headers, records: records };
+  }
+
+  function findColumn(headers, candidates){
+    var lower = headers.map(function(h){ return h.toLowerCase().trim(); });
+    for (var k = 0; k < candidates.length; k++){
+      var idx = lower.indexOf(candidates[k].toLowerCase());
+      if (idx !== -1) return headers[idx];
+    }
+    return null;
+  }
+
+  var REQUIRED_ALIASES = {
+    minute: ['minute','min','match_minute'],
+    team: ['team','team_name','squad'],
+    type: ['type','event_type','event']
+  };
+  var OPTIONAL_ALIASES = {
+    xg: ['shot_statsbomb_xg','xg','shot_xg','expected_goals'],
+    shot_outcome: ['shot_outcome','outcome','result'],
+    player: ['player','player_name'],
+    dribble_outcome: ['dribble_outcome']
+  };
+
+  function ValidationError(msg){ this.message = msg; this.isValidation = true; }
+  ValidationError.prototype = Object.create(Error.prototype);
+
+  function buildMatchData(headers, records){
+    var colMap = {}, missing = [];
+    Object.keys(REQUIRED_ALIASES).forEach(function(key){
+      var found = findColumn(headers, REQUIRED_ALIASES[key]);
+      if (!found) missing.push(key); else colMap[key] = found;
+    });
+    if (missing.length){
+      throw new ValidationError(
+        'Missing required column(s): ' + missing.join(', ') + '. ' +
+        'Columns found in this file: ' + headers.join(', ') + '. ' +
+        'This tool needs event-level data (one row per action) with at least a minute, team and event-type column -- a match summary or aggregate file cannot be analyzed this way.'
+      );
+    }
+    var optMap = {};
+    Object.keys(OPTIONAL_ALIASES).forEach(function(key){
+      var found = findColumn(headers, OPTIONAL_ALIASES[key]);
+      if (found) optMap[key] = found;
+    });
+
+    var teamsSet = {}, teamsList = [];
+    records.forEach(function(r){
+      var t = r[colMap.team];
+      if (t && !(t in teamsSet)){ teamsSet[t] = true; teamsList.push(t); }
+    });
+    if (teamsList.length !== 2){
+      throw new ValidationError(
+        'Expected exactly 2 teams in this file, found ' + teamsList.length +
+        (teamsList.length ? (': ' + teamsList.slice(0,6).join(', ') + (teamsList.length > 6 ? ', ...' : '')) : '') +
+        '. This looks like a multi-match file -- export or filter down to a single match\'s events first.'
+      );
+    }
+    var teamA = teamsList[0], teamB = teamsList[1];
+
+    var maxMinute = 0;
+    records.forEach(function(r){
+      var m = parseFloat(r[colMap.minute]);
+      if (!isNaN(m) && m > maxMinute) maxMinute = m;
+    });
+    var numBins = Math.floor(maxMinute / BIN_SIZE) + 1;
+    var bins = [];
+    for (var b = 0; b < numBins; b++) bins.push(b * BIN_SIZE);
+
+    function zeros(){ var a = new Array(numBins); for (var k=0;k<numBins;k++) a[k]=0; return a; }
+    var xgA = zeros(), xgB = zeros(), pressA = zeros(), pressB = zeros(), dribA = zeros(), dribB = zeros();
+    var goals = [];
+    var hasXg = !!optMap.xg, hasShotOutcome = !!optMap.shot_outcome, hasDribble = !!optMap.dribble_outcome;
+
+    records.forEach(function(r){
+      var minute = parseFloat(r[colMap.minute]);
+      if (isNaN(minute)) return;
+      var team = r[colMap.team];
+      var type = (r[colMap.type] || '').toLowerCase().trim();
+      var binIdx = Math.min(Math.floor(minute / BIN_SIZE), numBins - 1);
+      var isA = team === teamA;
+
+      if (type === 'shot'){
+        if (hasXg){
+          var v = parseFloat(r[optMap.xg]);
+          var xgVal = isNaN(v) ? 0 : v;
+          if (isA) xgA[binIdx] += xgVal; else xgB[binIdx] += xgVal;
+        }
+        if (hasShotOutcome && (r[optMap.shot_outcome] || '').toLowerCase().trim() === 'goal'){
+          goals.push({ minute: minute, team: team, player: optMap.player ? r[optMap.player] : '' });
+        }
+      } else if (type === 'pressure'){
+        if (isA) pressA[binIdx] += 1; else pressB[binIdx] += 1;
+      } else if (type === 'dribble'){
+        if (hasDribble && (r[optMap.dribble_outcome] || '').toLowerCase().trim() === 'complete'){
+          if (isA) dribA[binIdx] += 1; else dribB[binIdx] += 1;
+        }
+      }
+    });
+
+    return {
+      teamA: teamA, teamB: teamB, bins: bins, binSize: BIN_SIZE,
+      xgA: xgA, xgB: xgB, pressA: pressA, pressB: pressB, dribA: dribA, dribB: dribB,
+      goals: goals, hasXg: hasXg, hasShotOutcome: hasShotOutcome, hasDribble: hasDribble
+    };
+  }
+
+  // ---------- momentum computation ----------
+  function rollingMeanCentered(arr, window){
+    var half = Math.floor(window/2), n = arr.length, out = new Array(n);
+    for (var i=0;i<n;i++){
+      var lo = Math.max(0, i-half), hi = Math.min(n-1, i+half);
+      var sum=0, count=0;
+      for (var j=lo;j<=hi;j++){ sum += arr[j]; count++; }
+      out[i] = sum / count;
+    }
+    return out;
+  }
+
+  function computeMomentum(matchData, weights){
+    var bins = matchData.bins, n = bins.length;
+    var scoreA = new Array(n), scoreB = new Array(n);
+    for (var i=0;i<n;i++){
+      scoreA[i] = weights.wXg*matchData.xgA[i] + weights.wPress*matchData.pressA[i] + weights.wDrib*matchData.dribA[i];
+      scoreB[i] = weights.wXg*matchData.xgB[i] + weights.wPress*matchData.pressB[i] + weights.wDrib*matchData.dribB[i];
+    }
+    var raw = scoreA.map(function(v,i){ return v - scoreB[i]; });
+    var momentum = rollingMeanCentered(raw, 3);
+
+    var turningIdx = n > 1 ? 1 : 0, turningSwing = -Infinity;
+    for (var k=1;k<n;k++){
+      var d = Math.abs(momentum[k]-momentum[k-1]);
+      if (d > turningSwing){ turningSwing = d; turningIdx = k; }
+    }
+    var turningBin = bins[turningIdx];
+    var turningWinner = (n>1 && (momentum[turningIdx]-momentum[turningIdx-1]) > 0) ? matchData.teamA : matchData.teamB;
+
+    var goalsA = matchData.goals.filter(function(g){ return g.team === matchData.teamA; }).length;
+    var goalsB = matchData.goals.filter(function(g){ return g.team === matchData.teamB; }).length;
+    var minutesDominantA = momentum.filter(function(v){ return v>0; }).length * matchData.binSize;
+    var minutesDominantB = momentum.filter(function(v){ return v<0; }).length * matchData.binSize;
+
+    return {
+      momentum: momentum, turningBin: turningBin, turningSwing: isFinite(turningSwing)?turningSwing:0,
+      turningWinner: turningWinner, goalsA: goalsA, goalsB: goalsB,
+      minutesDominantA: minutesDominantA, minutesDominantB: minutesDominantB
+    };
+  }
+
+  // ---------- rendering ----------
+  var svgNS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    var e = document.createElementNS(svgNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function buildAreaSegments(minutes, values){
+    var pts = [];
+    for (var i=0;i<minutes.length;i++){
+      pts.push([minutes[i], values[i]]);
+      if (i < minutes.length-1){
+        var v0=values[i], v1=values[i+1];
+        if ((v0>=0) !== (v1>=0) && v0!==v1){
+          var t = v0/(v0-v1);
+          var xc = minutes[i] + t*(minutes[i+1]-minutes[i]);
+          pts.push([xc,0]);
+        }
+      }
+    }
+    if (pts.length===0) return [];
+    var segments = [];
+    var current = { sign: pts[0][1]>=0?1:-1, pts:[pts[0]] };
+    segments.push(current);
+    for (var j=1;j<pts.length;j++){
+      var v = pts[j][1];
+      current.pts.push(pts[j]);
+      if (v===0 && j<pts.length-1){
+        var nextVal = pts[j+1][1];
+        current = { sign: nextVal>=0?1:-1, pts:[pts[j]] };
+        segments.push(current);
+      }
+    }
+    return segments;
+  }
+
+  function renderChart(svg, matchData, result){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var W=960,H=420, marginL=20, marginR=20, marginT=40, marginB=40;
+    var plotW = W-marginL-marginR, plotH = H-marginT-marginB;
+    var baseY = marginT + plotH/2;
+    var maxMinute = matchData.bins[matchData.bins.length-1] || 1;
+    var maxAbs = Math.max(1e-6, Math.max.apply(null, result.momentum.map(Math.abs))) * 1.2;
+
+    function sx(m){ return marginL + (m/maxMinute)*plotW; }
+    function sy(v){ return baseY - (v/maxAbs)*(plotH/2); }
+
+    // baseline
+    svg.appendChild(el('line',{x1:marginL,y1:baseY,x2:W-marginR,y2:baseY,class:'axis-line','stroke-width':1}));
+
+    // diverging area segments
+    var segs = buildAreaSegments(matchData.bins, result.momentum);
+    segs.forEach(function(seg){
+      var d = 'M ' + sx(seg.pts[0][0]) + ' ' + baseY + ' ';
+      seg.pts.forEach(function(p){ d += 'L ' + sx(p[0]) + ' ' + sy(p[1]) + ' '; });
+      d += 'L ' + sx(seg.pts[seg.pts.length-1][0]) + ' ' + baseY + ' Z';
+      svg.appendChild(el('path',{d:d, fill: seg.sign>0?'var(--series-a-soft)':'var(--series-b-soft)', stroke:'none'}));
+    });
+
+    // the line itself
+    var linePts = matchData.bins.map(function(m,i){ return sx(m)+','+sy(result.momentum[i]); }).join(' ');
+    svg.appendChild(el('polyline',{points:linePts, fill:'none', stroke:'var(--text)', 'stroke-width':1.5, 'stroke-opacity':0.6}));
+
+    // turning point line
+    var tx = sx(result.turningBin);
+    var tline = el('line',{x1:tx,y1:marginT,x2:tx,y2:H-marginB,class:'turning-line','stroke-width':2,'stroke-dasharray':'5,4'});
+    svg.appendChild(tline);
+    var tlabel = el('text',{x:tx, y:marginT-10, 'text-anchor':'middle','font-size':'12'});
+    tlabel.textContent = 'turning point ~' + result.turningBin + "'";
+    tlabel.setAttribute('fill','var(--accent-ink)');
+    svg.appendChild(tlabel);
+
+    // goal markers
+    function interpAt(minute){
+      var bins = matchData.bins;
+      for (var i=0;i<bins.length-1;i++){
+        if (minute>=bins[i] && minute<=bins[i+1]){
+          var t=(minute-bins[i])/(bins[i+1]-bins[i]||1);
+          return result.momentum[i] + t*(result.momentum[i+1]-result.momentum[i]);
+        }
+      }
+      return result.momentum[result.momentum.length-1];
+    }
+    matchData.goals.forEach(function(g, idx){
+      var gx = sx(Math.min(g.minute, maxMinute));
+      var curveVal = interpAt(Math.min(g.minute, maxMinute));
+      var isA = g.team === matchData.teamA;
+      var gy = sy(curveVal) + (isA ? -16 : 16);
+      svg.appendChild(el('line',{x1:gx,y1:sy(curveVal),x2:gx,y2:gy,stroke:'var(--text-muted)','stroke-width':1}));
+      var star = el('circle',{cx:gx,cy:gy,r:5, fill:'var(--accent)', stroke:'var(--text)','stroke-width':1});
+      svg.appendChild(star);
+      var label = el('text',{x:gx, y: isA ? gy-9 : gy+16, 'text-anchor':'middle','font-size':'11',class:'goal-label'});
+      var who = (g.player || g.team || '').toString().split(' ').pop();
+      label.textContent = who + " " + Math.round(g.minute) + "'";
+      svg.appendChild(label);
+    });
+
+    // x-axis ticks
+    var tickStep = maxMinute > 100 ? 20 : 15;
+    for (var mm=0; mm<=maxMinute; mm+=tickStep){
+      var txk = sx(mm);
+      svg.appendChild(el('line',{x1:txk,y1:H-marginB,x2:txk,y2:H-marginB+5,class:'axis-line','stroke-width':1}));
+      var tl = el('text',{x:txk,y:H-marginB+20,'text-anchor':'middle','font-size':'11'});
+      tl.textContent = mm + "'";
+      svg.appendChild(tl);
+    }
+
+    // direction labels
+    var topLabel = el('text',{x:marginL, y:marginT+14,'font-size':'11','font-weight':'600'});
+    topLabel.textContent = matchData.teamA + ' ↑';
+    topLabel.setAttribute('fill','var(--series-a)');
+    svg.appendChild(topLabel);
+    var botLabel = el('text',{x:marginL, y:H-marginB-6,'font-size':'11','font-weight':'600'});
+    botLabel.textContent = matchData.teamB + ' ↓';
+    botLabel.setAttribute('fill','var(--series-b)');
+    svg.appendChild(botLabel);
+  }
+
+  function renderLegend(matchData){
+    var row = document.getElementById('legendRow');
+    row.innerHTML = '';
+    [[matchData.teamA,'var(--series-a)'], [matchData.teamB,'var(--series-b)']].forEach(function(pair){
+      var item = document.createElement('span');
+      item.className = 'legend-item';
+      var sw = document.createElement('span');
+      sw.className = 'swatch';
+      sw.style.background = pair[1];
+      var txt = document.createElement('span');
+      txt.textContent = pair[0];
+      item.appendChild(sw); item.appendChild(txt);
+      row.appendChild(item);
+    });
+  }
+
+  function fmtMin(x){ return Math.round(x) + ' min'; }
+
+  function renderStats(matchData, result){
+    var grid = document.getElementById('statGrid');
+    grid.innerHTML = '';
+
+    function tile(label, valueHTML, extraHTML){
+      var t = document.createElement('div');
+      t.className = 'stat-tile';
+      var l = document.createElement('div'); l.className='stat-label'; l.textContent=label;
+      var v = document.createElement('div'); v.className='stat-value'; v.innerHTML=valueHTML;
+      t.appendChild(l); t.appendChild(v);
+      if (extraHTML){ var x = document.createElement('div'); x.innerHTML = extraHTML; t.appendChild(x); }
+      return t;
+    }
+
+    grid.appendChild(tile('Score', matchData.teamA + ' ' + result.goalsA + ' – ' + result.goalsB + ' ' + matchData.teamB));
+
+    var total = result.minutesDominantA + result.minutesDominantB;
+    var pctA = total > 0 ? (result.minutesDominantA/total*100) : 50;
+    var barHTML = '<div class="control-bar"><div class="seg-a" style="width:'+pctA+'%"></div><div class="seg-b" style="width:'+(100-pctA)+'%"></div></div>';
+    grid.appendChild(tile('Momentum control', fmtMin(result.minutesDominantA)+' / '+fmtMin(result.minutesDominantB), barHTML));
+
+    grid.appendChild(tile('Biggest swing', "~"+Math.round(result.turningBin)+"'", '<span class="hint">toward '+result.turningWinner+'</span>'));
+
+    var sentence = document.getElementById('turningSentence');
+    sentence.innerHTML = 'Biggest turning point: around minute <b>' + Math.round(result.turningBin) + "'</b>, momentum swung toward <b>" + result.turningWinner + '</b>.';
+
+    var notesParts = [];
+    if (!matchData.hasXg) notesParts.push('no xG column found — shot quality ignored');
+    if (!matchData.hasShotOutcome) notesParts.push('no shot_outcome column found — goals not marked');
+    if (!matchData.hasDribble) notesParts.push('no dribble_outcome column found — dribbling ignored');
+    var notesEl = document.getElementById('notesLine');
+    if (notesParts.length){
+      notesEl.hidden = false;
+      notesEl.textContent = 'Note: ' + notesParts.join('; ') + '.';
+    } else {
+      notesEl.hidden = true;
+    }
+  }
+
+  // ---------- app state ----------
+  var currentMatchData = null;
+  var weights = { wXg: 3, wPress: 0.1, wDrib: 0.3 };
+
+  function refresh(){
+    if (!currentMatchData) return;
+    var result = computeMomentum(currentMatchData, weights);
+    renderLegend(currentMatchData);
+    renderChart(document.getElementById('chart'), currentMatchData, result);
+    renderStats(currentMatchData, result);
+  }
+
+  function showError(msg){
+    var box = document.getElementById('fileError');
+    box.hidden = false;
+    box.innerHTML = '<strong>Could not read this file.</strong><br>' + msg;
+  }
+  function clearError(){
+    var box = document.getElementById('fileError');
+    box.hidden = true; box.innerHTML = '';
+  }
+
+  function setLiveMode(matchData){
+    currentMatchData = matchData;
+    document.getElementById('modePill').textContent = matchData.teamA + ' vs ' + matchData.teamB;
+    document.getElementById('modePill').classList.add('live');
+    document.getElementById('resetBtn').hidden = false;
+    document.getElementById('weightsPanel').setAttribute('data-disabled','false');
+    document.getElementById('weightsHint').textContent = 'Tuning these changes the chart live.';
+    refresh();
+  }
+
+  function handleFile(file){
+    clearError();
+    if (file.size > 30 * 1024 * 1024){
+      showError('This file is ' + (file.size/1024/1024).toFixed(1) + ' MB — too large for a single match. This tool expects one match\'s events (typically well under 5 MB). This is likely a multi-match or season file.');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e){
+      try {
+        var parsed = parseCSV(e.target.result);
+        if (parsed.records.length === 0) throw new ValidationError('The file appears to be empty.');
+        var matchData = buildMatchData(parsed.headers, parsed.records);
+        setLiveMode(matchData);
+      } catch (err){
+        showError(err.message || String(err));
+      }
+    };
+    reader.onerror = function(){ showError('The browser could not read this file.'); };
+    reader.readAsText(file);
+  }
+
+  // ---------- illustrative example ----------
+  function buildExample(){
+    var bins = [];
+    for (var m=0;m<=120;m+=5) bins.push(m);
+    var momentum = [0.05,0.15,0.30,0.45,0.55,0.70,0.65,0.55,0.75,0.60,0.50,0.40,0.30,0.20,0.10,0.00,-0.20,-0.70,-1.00,-0.85,-0.55,-0.30,-0.05,0.15,0.05];
+    var matchData = {
+      teamA: 'Argentina', teamB: 'France', bins: bins, binSize: 5,
+      goals: [
+        {minute:23, team:'Argentina', player:'Messi'},
+        {minute:36, team:'Argentina', player:'Di Maria'},
+        {minute:80, team:'France', player:'Mbappe'},
+        {minute:81, team:'France', player:'Mbappe'},
+        {minute:108, team:'Argentina', player:'Messi'},
+        {minute:118, team:'France', player:'Mbappe'}
+      ],
+      hasXg:true, hasShotOutcome:true, hasDribble:true
+    };
+    var turningIdx = 1, turningSwing = -Infinity;
+    for (var k=1;k<momentum.length;k++){
+      var d = Math.abs(momentum[k]-momentum[k-1]);
+      if (d>turningSwing){ turningSwing=d; turningIdx=k; }
+    }
+    var result = {
+      momentum: momentum,
+      turningBin: bins[turningIdx],
+      turningSwing: turningSwing,
+      turningWinner: (momentum[turningIdx]-momentum[turningIdx-1])>0 ? 'Argentina' : 'France',
+      goalsA: 3, goalsB: 3,
+      minutesDominantA: momentum.filter(function(v){return v>0;}).length*5,
+      minutesDominantB: momentum.filter(function(v){return v<0;}).length*5
+    };
+    return { matchData: matchData, result: result };
+  }
+
+  function showExample(){
+    var ex = buildExample();
+    currentMatchData = ex.matchData;
+    document.getElementById('modePill').textContent = 'Illustrative example';
+    document.getElementById('modePill').classList.remove('live');
+    document.getElementById('resetBtn').hidden = true;
+    document.getElementById('weightsPanel').setAttribute('data-disabled','true');
+    document.getElementById('weightsHint').textContent = 'Upload your own match to tune these live.';
+    clearError();
+    renderLegend(ex.matchData);
+    renderChart(document.getElementById('chart'), ex.matchData, ex.result);
+    renderStats(ex.matchData, ex.result);
+    document.getElementById('notesLine').hidden = true;
+  }
+
+  // ---------- wiring ----------
+  document.getElementById('fileInput').addEventListener('change', function(e){
+    if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+  });
+  var dz = document.querySelector('.dropzone');
+  dz.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); document.getElementById('fileInput').click(); }
+  });
+  dz.addEventListener('dragover', function(e){ e.preventDefault(); });
+  dz.addEventListener('drop', function(e){
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  document.getElementById('resetBtn').addEventListener('click', showExample);
+
+  function wireSlider(id, outId, key){
+    var input = document.getElementById(id), out = document.getElementById(outId);
+    input.addEventListener('input', function(){
+      var v = parseFloat(input.value);
+      weights[key] = v;
+      out.textContent = v.toFixed(key==='wPress'?2:1);
+      refresh();
+    });
+  }
+  wireSlider('wXg','wXgOut','wXg');
+  wireSlider('wPress','wPressOut','wPress');
+  wireSlider('wDrib','wDribOut','wDrib');
+
+  showExample();
+})();
+</script>
